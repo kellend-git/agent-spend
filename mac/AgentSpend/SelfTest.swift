@@ -250,6 +250,16 @@ struct SelfTest {
             eq(energy.entry(for: p.id)?.tier, p.tier,
                "\(p.id) tier agrees between pricing and energy model")
         }
+        // And the same check in reverse. The loop above is one-way: an
+        // ENERGY-only row passes it, because it never appears in
+        // pricing.models to be looked up. Such a row is worse than a missing
+        // one — it costs $0 everywhere while still carrying a tier the
+        // recommender filters on, so it can be proposed as a downshift target
+        // that appears free. Resources/README.md rule 3 requires both files.
+        for e in energy.models {
+            ok(pricing.models.contains { $0.id == e.id },
+               "\(e.id) has energy coefficients and a published price")
+        }
 
         // Opus 5.5 undercuts Opus 5 on every axis, cache reads included. A
         // same-tier peer suggestion still pointing at an older Opus is quoting

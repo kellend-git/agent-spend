@@ -208,6 +208,11 @@ def main():
     check("every catalog model returns a cost", not unpriceable, str(unpriceable))
     no_tier = sorted(m for m in prices if m not in tiers)
     check("every catalog model has an energy-model entry", not no_tier, str(no_tier))
+    # The reverse direction. An energy-only model is never iterated above, so
+    # it would stay invisible here while pricing at $0 in the app and still
+    # being eligible for the recommender's tier filter.
+    no_price = sorted(m for m in tiers if m not in prices)
+    check("every energy-model entry has a published price", not no_price, str(no_price))
 
     print("\n" + ("ALL CHECKS PASSED" if not FAIL else f"FAILED: {FAIL}"))
     return 1 if FAIL else 0
