@@ -299,15 +299,23 @@ struct SelfTest {
         read.model = "claude-opus-5"
         close(est.cost(read) ?? -1, 0.50, 1e-9, "opus 5 still reads at 0.1x")
 
+        // Astra's probe must stay UNDER its 272K long-context threshold, or it
+        // measures the surcharged rate instead of the rate card: a 1M-token
+        // write is by definition a long-context request, and would read
+        // $25/MTok. 200K writes at $10 input x 1.25 = $2.50. The surcharge
+        // itself is covered in costs() against the threshold boundary.
         var write = UsageRecord(id: "w", provider: .codex, timestamp: nil,
                                 model: "gpt-6-astra", input: 0, output: 0,
-                                cacheWrite: 1_000_000, cacheWrite5m: 0,
+                                cacheWrite: 200_000, cacheWrite5m: 0,
                                 cacheWrite1h: 0, cacheRead: 0, cwd: nil,
                                 gitBranch: nil, sessionId: nil,
                                 isSidechain: false, isSubagent: false)
-        close(est.cost(write) ?? -1, 12.50, 1e-9,
-              "gpt-6 astra writes cache at 1.25x input")
+        close(est.cost(write) ?? -1, 2.50, 1e-9,
+              "gpt-6 astra writes cache at 1.25x input below its threshold")
+        // Luna carries no longContext block yet, so a 1M probe still reads the
+        // short-context rate. That asymmetry is the gap `notes` records.
         write.model = "gpt-6-luna"
+        write.cacheWrite = 1_000_000
         close(est.cost(write) ?? -1, 0.125, 1e-9,
               "gpt-6 luna writes cache at 1.25x input")
     }
