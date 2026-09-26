@@ -213,6 +213,16 @@ def main():
     # being eligible for the recommender's tier filter.
     no_price = sorted(m for m in tiers if m not in prices)
     check("every energy-model entry has a published price", not no_price, str(no_price))
+    # Presence in both files is not enough: the two must agree on the TIER.
+    # The recommender filters frontier-large off the ENERGY entry while the
+    # Models table shows the priced one, so a disagreement splits the two with
+    # nothing in the UI to announce it. SelfTest checks this; until now this
+    # verifier did not, which is the half that is supposed to be independent.
+    tier_drift = sorted(f"{m}: pricing={prices[m].get('tier')!r} energy={tiers[m]!r}"
+                        for m in prices if m in tiers
+                        and prices[m].get("tier") != tiers[m])
+    check("pricing and energy agree on every shared model's tier",
+          not tier_drift, str(tier_drift))
 
     print("\n" + ("ALL CHECKS PASSED" if not FAIL else f"FAILED: {FAIL}"))
     return 1 if FAIL else 0
