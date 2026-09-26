@@ -12,7 +12,7 @@
     "Opus 5.5 is a new tier BELOW Opus 5, at $4/$20 against $5/$25, and is cheaper on cache reads too (0.05x against 0.10x). It undercuts the model above it on every axis, so a same-tier peer suggestion that still points at an older Opus is quoting the more expensive model.",
     "GPT-6 Sol and GPT-6 Luna (launched 2026-09-23) undercut the GPT-5.6 models at the same tier: Sol is exactly half Sol 5.6 ($2/$10 against $4/$20), and Luna is half on input and less than half on output ($0.10/$0.50 against $0.20/$1.20). Any tier-downshift figure computed before these rows existed was measured against a floor roughly 2x too high.",
     "GPT-5.6 Sol's $4/$20 is PROMOTIONAL and guaranteed only through 2026-11-21. Re-check it after that date.",
-    "NOT MODELLED: OpenAI publishes a long-context tier for every GPT-5.6 and GPT-6 model here: 2x input, 2x cached input, 2x cache write and 1.5x output once a request crosses the long-context prompt threshold. Every OpenAI figure below is the short-context rate, so a very large prompt is under-billed. Adding it needs a per-model threshold in the schema, which is a change to the estimator and not just to this table."
+    "PARTIALLY MODELLED: OpenAI publishes a long-context tier for every GPT-5.6 and GPT-6 model here \u2014 2x input, 2x cached input, 2x cache write and 1.5x output once a request crosses the long-context prompt threshold, applied to the WHOLE request and not just the tokens above it. Only gpt-6-astra carries a `longContext` block (threshold 272000), so only it bills correctly on a very large prompt; the other five OpenAI rows are still short-context-only and under-bill above their thresholds. Adding each one needs its published threshold, not just a copy of Astra's."
   ],
   "cacheMultipliers": {
     "claude": {
@@ -171,6 +171,12 @@
         "write5m": 1.25,
         "write1h": 1.25
       },
+      "longContext": {
+        "threshold": 272000,
+        "input": 2.0,
+        "cache": 2.0,
+        "output": 1.5
+      },
       "why": "Published at $10 input, $1.00 cached input (0.1x), $12.50 cache write (1.25x), $50 output. The flagship of the GPT-6 line and the only one of the three that is not cheaper than its GPT-5.6 counterpart."
     },
     {
@@ -320,6 +326,7 @@
   },
   "sources": [
     "https://platform.claude.com/docs/en/about-claude/pricing",
-    "https://developers.openai.com/api/docs/pricing"
+    "https://developers.openai.com/api/docs/pricing",
+    "https://developers.openai.com/api/docs/models/gpt-6-astra"
   ]
 }
